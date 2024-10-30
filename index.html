@@ -1,0 +1,40 @@
+<!doctype html>
+<link rel="stylesheet" href="style.css">
+<form name="publish">
+
+    <input type="text" name="message" maxlength="50"/>
+    <input type="submit" value="Send"/>
+</form>
+
+<div id="messages"></div>
+
+<script>
+    let url = location.host === 'localhost' ?
+        'ws://localhost:8080/ws' : location.host === 'javascript.local' ?
+            `ws://javascript.local/article/websocket/chat/ws` : // dev integration with local site
+            `wss://javascript.info/article/websocket/chat/ws`; // prod integration with javascript.info
+    //loome objekti koos veebisoketiga
+    let socket = new WebSocket(url);
+
+    // sõnumi saatmine vormile
+    document.forms.publish.onsubmit = function() {
+        let outgoingMessage = this.message.value;
+
+        socket.send(outgoingMessage);
+        return false;
+    };
+
+    // töödelda sissetulevaid sõnumeid
+    socket.onmessage = function(event) {
+        let incomingMessage = event.data;
+        showMessage(incomingMessage);
+    };
+    //kui kasutaja on socket'i sulgenud, kirjutame sellest konsooli.
+    socket.onclose = event => console.log(`Closed ${event.code}`);
+
+    // Näita sõnumeid div#messages
+    function showMessage(message) {
+        let messageElem = document.createElement('div');
+        messageElem.textContent = message;
+        document.getElementById('messages').prepend(messageElem);}
+</script>
